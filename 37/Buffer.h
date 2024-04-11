@@ -9,7 +9,7 @@ class Buffer {
                         // 2， 分隔符'\r\n\r\n'
 
  public:
-  Buffer(uint16_t sep = 1);
+  Buffer(uint16_t sep = 0);
   ~Buffer();
 
   void append(const char* data, size_t len);

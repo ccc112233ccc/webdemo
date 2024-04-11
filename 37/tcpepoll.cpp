@@ -1,7 +1,8 @@
 #include <signal.h>
+#include <spdlog/spdlog.h>
 
 #include "EchoServer.h"
-
+#include "spdlog/cfg/env.h"
 EchoServer* echoserver;
 
 void sig_handler(int signo) {
@@ -17,7 +18,7 @@ int main(int argc, char* argv[]) {
     printf("Usage: %s <port>\n", argv[0]);
     return 1;
   }
-
+  spdlog::cfg::load_env_levels();
   signal(SIGINT, sig_handler);
   signal(SIGTERM, sig_handler);
 

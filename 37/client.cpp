@@ -17,6 +17,10 @@ int main(int argc, char* argv[]) {
     printf("Usage: %s <ip> <port>\n", argv[0]);
     return 1;
   }
+  int epochs = 1;
+  if (argc == 4) {
+    epochs = atoi(argv[3]);
+  }
 
   // 创建套接字
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,7 +43,7 @@ int main(int argc, char* argv[]) {
   // 开始时间
   printf("start %ld\n", time(NULL));
   char buf[1024];
-  for (int i = 0; i < 1000000; i++) {
+  for (int i = 0; i < epochs; i++) {
     memset(buf, 0, sizeof(buf));
     sprintf(buf, "hello %d", i);
 
@@ -57,7 +61,8 @@ int main(int argc, char* argv[]) {
     // 再读取报文体
     bzero(buf, sizeof(buf));
     recv(sockfd, buf, len, 0);
-    // printf("recv: %s\n", buf);
+
+    // // printf("recv: %s\n", buf);
   }
   // 结束时间
   printf("end   %ld\n", time(NULL));

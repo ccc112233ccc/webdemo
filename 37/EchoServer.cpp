@@ -1,5 +1,8 @@
 #include "EchoServer.h"
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 EchoServer::EchoServer(uint16_t port, int threadnum, int workerthreadnum)
@@ -28,19 +31,18 @@ void EchoServer::stop() {
 }
 
 void EchoServer::HandleNewConnection(spConnection conn) {
-  printf("%s new connection(fd = %d, ip = %s, port = %d)\n",
-         Timestamp::now().tostr().c_str(), conn->fd(), conn->ip().c_str(),
-         conn->port());
+  spdlog::info("new connection(fd = {}, ip = {}, port = {})", conn->fd(),
+               conn->ip(), conn->port());
 }
 
 void EchoServer::HandleCloseConnection(spConnection conn) {
-  printf("%s close connection(fd = %d, ip = %s, port = %d)\n",
-         Timestamp::now().tostr().c_str(), conn->fd(), conn->ip().c_str(),
-         conn->port());
+  spdlog::info("close connection(fd = {}, ip = {}, port = {})", conn->fd(),
+               conn->ip(), conn->port());
 }
 
 void EchoServer::HandleErrorConnection(spConnection conn) {
-  // std::cout << "Error connection" << std::endl;
+  spdlog::error("error connection(fd = {}, ip = {}, port = {})", conn->fd(),
+                conn->ip(), conn->port());
 }
 
 void EchoServer::HandleMessage(spConnection conn, std::string& message) {
@@ -60,9 +62,16 @@ void EchoServer::HandleTimeout(EventLoop* loop) {
 }
 
 void EchoServer::OnMessage(spConnection conn, std::string& message) {
-  // printf("%s receive message(fd = %d, ip = %s, port = %d): %s\n",
-  //        Timestamp::now().tostr().c_str(), conn->fd(), conn->ip().c_str(),
-  //        conn->port(), message.c_str());
-  message = "reply: " + message;
-  conn->send(message.data(), message.size());
+  spdlog::debug(
+      "receive message from fd = {}, ip = {}, port = {}, message = {}",
+      conn->fd(), conn->ip(), conn->port(), message);
+  //   HTTP/1.0 200 OK
+  // Content-Type: text/html
+  // Content-Length: 25
+
+  // <html><body>Hello!</body></html>
+  std::string response =
+      "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
+      "25\r\n\r\n<html><body>Hello!</body></html>";
+  conn->send(response.data(), response.size());
 }

@@ -1,5 +1,7 @@
 #include "Connection.h"
 
+#include <spdlog/spdlog.h>
+
 #include <bitset>
 
 Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock)
@@ -14,9 +16,7 @@ Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock)
   clientch_->enable_reading();
 }
 
-Connection::~Connection() {
-  // printf("Connection::~Connection()\n");
-}
+Connection::~Connection() { spdlog::debug("Connection::~Connection"); }
 
 void Connection::close_callback() {
   disconnected_ = true;
@@ -49,22 +49,11 @@ void Connection::on_message() {
   while (true) {
     memset(buf, 0, sizeof(buf));
     int n = recv(fd(), buf, sizeof(buf), 0);
+    spdlog::debug("recv {} bytes", n);
     if (n == -1) {
       if (errno == EAGAIN) {
-        // printf("recv : %s\n", input_buffer_.data());
         std::string message;
         while (true) {
-          // int len;
-          // memcpy(&len, input_buffer_.data(), sizeof(len));
-          // if (input_buffer_.size() < sizeof(len) + len) {
-          //   // 说明数据还没接收完
-          //   break;
-          // }
-          // std::string message(input_buffer_.data() + sizeof(len),
-          //                     len);  // 从 input_buffer_
-          //                     中提取出一个完整的消息
-          // input_buffer_.erase(
-          //     0, sizeof(len) + len);  // 从 input_buffer_ 中删除这个消息
           if (input_buffer_.pickmessage(message) == false) {
             break;
           }

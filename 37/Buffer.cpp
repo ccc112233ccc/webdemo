@@ -28,6 +28,9 @@ void Buffer::appendwithsep(const char* data, size_t len) {
 
 bool Buffer::pickmessage(std::string& message) {
   if (sep_ == 0) {
+    if (buffer_.size() == 0) {
+      return false;
+    }
     message = buffer_;
     buffer_.clear();
     return true;

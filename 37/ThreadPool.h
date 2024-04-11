@@ -1,5 +1,6 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
 #include <stdio.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -27,8 +28,7 @@ class ThreadPool {
   ThreadPool(size_t n, const std::string& name = "ThreadPool") : name_(name) {
     for (size_t i = 0; i < n; i++) {
       threads.emplace_back([this] {
-        // printf("%s, thread create(%ld)\n", name_.data(),
-        // syscall(SYS_gettid));
+        spdlog::info("{} thread create({})", name_, syscall(SYS_gettid));
         while (true) {
           std::unique_lock<std::mutex> lock(m);
           cv.wait(lock, [this] { return stop_ || !tasks.empty(); });
@@ -39,8 +39,7 @@ class ThreadPool {
           auto task = std::move(tasks.front());
           tasks.pop();
           lock.unlock();
-          // printf("%s, thread doing(%ld)\n", name_.data(),
-          // syscall(SYS_gettid));
+          spdlog::debug("{} thread({}) start task", name_, syscall(SYS_gettid));
           task();
         }
       });

@@ -16,7 +16,7 @@ TcpServer::TcpServer(int port, int threadnum)
       std::bind(&TcpServer::epoll_timeout, this, std::placeholders::_1));
 
   for (int i = 0; i < threadnum_; i++) {
-    subloops_.emplace_back(new EventLoop(false, 5, 10));
+    subloops_.emplace_back(new EventLoop(false, 2, 1));
     subloops_[i]->set_timeout_callback(
         std::bind(&TcpServer::epoll_timeout, this, std::placeholders::_1));
     subloops_[i]->set_connection_timeout_cb(
