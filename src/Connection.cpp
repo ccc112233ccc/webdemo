@@ -81,7 +81,8 @@ void Connection::send(const char* data, size_t len) {
     printf("disconnected_\n");
     return;
   }
-  if (loop_->in_loop_thread()) {
+  // if (loop_->in_loop_thread()) {
+  if (true) {
     // 说明在 IO 线程中
     send_in_loop(data, len);
   } else {

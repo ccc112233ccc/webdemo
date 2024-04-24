@@ -62,16 +62,17 @@ void EchoServer::HandleTimeout(EventLoop* loop) {
 }
 
 void EchoServer::OnMessage(spConnection conn, std::string& message) {
-  spdlog::debug(
-      "receive message from fd = {}, ip = {}, port = {}, message = {}",
-      conn->fd(), conn->ip(), conn->port(), message);
+  // spdlog::debug(
+  //     "receive message from fd = {}, ip = {}, port = {}, message = {}",
+  //     conn->fd(), conn->ip(), conn->port(), message);
   //   HTTP/1.0 200 OK
   // Content-Type: text/html
   // Content-Length: 25
 
   // <html><body>Hello!</body></html>
   std::string response =
-      "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nContent-Length: "
+      "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nConnection: "
+      "keep-alive\r\nContent-Length: "
       "25\r\n\r\n<html><body>Hello!</body></html>";
   conn->send(response.data(), response.size());
 }

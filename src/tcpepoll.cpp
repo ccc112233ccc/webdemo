@@ -14,23 +14,23 @@ void sig_handler(int signo) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    printf("Usage: %s <port>\n", argv[0]);
-    return 1;
+  int port = 8080;
+  if (argc >= 2) {
+    port = atoi(argv[1]);
   }
   int io_threads = 3;
   if (argc >= 3) {
     io_threads = atoi(argv[2]);
   }
   int work_thread = 0;
-  if(argc >= 4) {
+  if (argc >= 4) {
     work_thread = atoi(argv[3]);
   }
   spdlog::cfg::load_env_levels();
   signal(SIGINT, sig_handler);
   signal(SIGTERM, sig_handler);
 
-  echoserver = new EchoServer(atoi(argv[1]), io_threads, work_thread);
+  echoserver = new EchoServer(port, io_threads, work_thread);
 
   echoserver->start();
 }

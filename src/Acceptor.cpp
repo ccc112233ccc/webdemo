@@ -10,7 +10,7 @@ Acceptor::Acceptor(EventLoop* loop, int port)
   servsock_.setKeepAlive(true);
   servsock_.setNoDelay(true);
   servsock_.bindAddress(servaddr);
-  servsock_.listen(10);
+  servsock_.listen();
 
   servch_.enable_reading();  // 启用读事件
   servch_.set_read_callback(std::bind(&Acceptor::new_connect, this));
