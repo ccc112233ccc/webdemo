@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Channel.h"
+#include "Tracer.h"
 
 Epoll::Epoll() {
   epoll_fd_ = epoll_create(1);
@@ -54,7 +55,7 @@ std::vector<Channel*> Epoll::wait(int timeout) {
   }
   std::vector<Channel*> ret;
   for (int i = 0; i < nfds; i++) {
-    Channel* channel = (Channel*)events_[i].data.ptr;
+    Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
     channel->set_revents(events_[i].events);
     ret.push_back(channel);
   }

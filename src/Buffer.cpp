@@ -15,7 +15,7 @@ void Buffer::erase(size_t pos, size_t len) { buffer_.erase(pos, len); }
 
 void Buffer::appendwithsep(const char* data, size_t len) {
   if (sep_ == 0) {
-    append(data, len);
+    buffer_.append(data, len);
   } else if (sep_ == 1) {
     uint32_t len_ = len;
     buffer_.append((char*)&len_, sizeof(len_));

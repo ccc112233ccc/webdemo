@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include "Channel.h"
+#include "Tracer.h"
 
 int creattimerfd(int sec = 5, int nsec = 0) {
   int timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
@@ -38,11 +39,17 @@ EventLoop::~EventLoop() {}
 
 void EventLoop::loop() {
   // printf("EventLoop::loop thread id (%ld)\n", syscall(SYS_gettid));
-  thread_id_ = syscall(SYS_gettid);
+  // thread_id_ = syscall(SYS_gettid);
   while (stop_ == false) {
     std::vector<Channel*> channels = ep_->wait(-1);
     if (channels.empty()) {
-      timeout_callback_(this);
+      if (stop_) {
+        break;
+      }
+      if (timeout_callback_) {
+        spdlog::info("timeout_callback_");
+        timeout_callback_(this);
+      }
     }
     for (auto& ch : channels) {
       ch->handle_events();

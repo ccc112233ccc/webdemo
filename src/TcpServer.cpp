@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "InetAddress.h"
+#include "Tracer.h"
 
 TcpServer::TcpServer(int port, int threadnum)
     : threadnum_(threadnum),

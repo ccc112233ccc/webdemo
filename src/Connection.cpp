@@ -19,6 +19,9 @@ Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock)
 Connection::~Connection() { spdlog::debug("Connection::~Connection"); }
 
 void Connection::close_callback() {
+  if (disconnected_) {
+    return;
+  }
   disconnected_ = true;
   clientch_->remove();
   close_callback_(shared_from_this());
@@ -32,6 +35,7 @@ void Connection::error_callback() {
 void Connection::write_callback() {
   if (output_buffer_.size() > 0) {
     int n = ::send(fd(), output_buffer_.data(), output_buffer_.size(), 0);
+    spdlog::debug("send {} bytes", n);
     if (n == -1) {
       perror("send");
     } else {
@@ -59,12 +63,16 @@ void Connection::on_message() {
           }
 
           lasttime_ = Timestamp::now();
+          if (!message_callback_) {
+            spdlog::warn("message_callback_ is nullptr, message: {}", message);
+            return;
+          }
           message_callback_(shared_from_this(), message);
         }
 
         break;
       } else {
-        perror("recv");
+        spdlog::error("recv error: {}", strerror(errno));
         return;
       }
     } else if (n == 0) {
@@ -78,7 +86,7 @@ void Connection::on_message() {
 
 void Connection::send(const char* data, size_t len) {
   if (disconnected_) {
-    printf("disconnected_\n");
+    spdlog::warn("connection is disconnected, can't send data: {} bytes", len);
     return;
   }
   // if (loop_->in_loop_thread()) {

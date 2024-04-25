@@ -5,6 +5,7 @@
 #include "EventLoop.h"
 #include "InetAddress.h"
 #include "Socket.h"
+#include "Tracer.h"
 
 Channel::Channel(EventLoop* loop, int fd)
     : loop_(loop), fd_(fd), events_(0), revents_(0), inepoll_(false) {}

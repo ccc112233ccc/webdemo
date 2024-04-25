@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include "EchoServer.h"
+#include "Tracer.h"
 #include "spdlog/cfg/env.h"
 EchoServer* echoserver;
 

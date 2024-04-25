@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "Tracer.h"
+
 EchoServer::EchoServer(uint16_t port, int threadnum, int workerthreadnum)
     : server_(port, threadnum), threadpoll_(workerthreadnum, "workerthread") {
   server_.set_new_connect_callback(
@@ -31,13 +33,13 @@ void EchoServer::stop() {
 }
 
 void EchoServer::HandleNewConnection(spConnection conn) {
-  spdlog::info("new connection(fd = {}, ip = {}, port = {})", conn->fd(),
-               conn->ip(), conn->port());
+  // spdlog::info("new connection(fd = {}, ip = {}, port = {})", conn->fd(),
+  //              conn->ip(), conn->port());
 }
 
 void EchoServer::HandleCloseConnection(spConnection conn) {
-  spdlog::info("close connection(fd = {}, ip = {}, port = {})", conn->fd(),
-               conn->ip(), conn->port());
+  // spdlog::info("close connection(fd = {}, ip = {}, port = {})", conn->fd(),
+  //              conn->ip(), conn->port());
 }
 
 void EchoServer::HandleErrorConnection(spConnection conn) {
