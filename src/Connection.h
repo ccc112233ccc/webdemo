@@ -27,6 +27,10 @@ class Connection : public std::enable_shared_from_this<Connection> {
   std::function<void(spConnection, std::string&)> message_callback_;
   std::function<void(spConnection)> complete_callback_;
   Timestamp lasttime_;
+  static std::atomic<int> next_id_;
+  int id_;
+
+  static int get_next_id() { return next_id_++; }
 
  public:
   Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock);
@@ -38,6 +42,8 @@ class Connection : public std::enable_shared_from_this<Connection> {
   void close_callback();
   void error_callback();
   void write_callback();
+
+  void enable_reading();
 
   void set_close_callback(std::function<void(spConnection)> cb) {
     close_callback_ = cb;

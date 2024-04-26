@@ -17,7 +17,7 @@ TcpServer::TcpServer(int port, int threadnum)
       std::bind(&TcpServer::epoll_timeout, this, std::placeholders::_1));
 
   for (int i = 0; i < threadnum_; i++) {
-    subloops_.emplace_back(new EventLoop(false, 10, 30));
+    subloops_.emplace_back(new EventLoop(false));
     subloops_[i]->set_timeout_callback(
         std::bind(&TcpServer::epoll_timeout, this, std::placeholders::_1));
     subloops_[i]->set_connection_timeout_cb(
@@ -39,15 +39,19 @@ void TcpServer::stop() {
 TcpServer::~TcpServer() {}
 
 void TcpServer::new_connect(std::unique_ptr<Socket> clientsock) {
-  spConnection conn(new Connection(
-      subloops_[clientsock->fd() % threadnum_].get(), std::move(clientsock)));
+  // spConnection conn(new Connection(
+  //     subloops_[clientsock->fd() % threadnum_].get(),
+  //     std::move(clientsock)));
+  spConnection conn = std::make_shared<Connection>(
+      subloops_[clientsock->fd() % threadnum_].get(), std::move(clientsock));
+  conn->set_message_callback(std::bind(&TcpServer::message_callback, this,
+                                       std::placeholders::_1,
+                                       std::placeholders::_2));
   conn->set_close_callback(
       std::bind(&TcpServer::close_connect, this, std::placeholders::_1));
   conn->set_error_callback(
       std::bind(&TcpServer::error_connect, this, std::placeholders::_1));
-  conn->set_message_callback(std::bind(&TcpServer::message_callback, this,
-                                       std::placeholders::_1,
-                                       std::placeholders::_2));
+
   conn->set_complete_callback(
       std::bind(&TcpServer::complete_callback, this, std::placeholders::_1));
 
@@ -56,20 +60,23 @@ void TcpServer::new_connect(std::unique_ptr<Socket> clientsock) {
     connections_[conn->fd()] = conn;
   }
   subloops_[conn->fd() % threadnum_]->add_connection(conn);
+  conn->enable_reading();
 
   if (new_connect_callback_) {
     new_connect_callback_(conn);
   }
 }
 
+void TcpServer::remove_connection(int fd) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  connections_.erase(fd);
+}
+
 void TcpServer::close_connect(spConnection conn) {
   if (close_connect_callback_) {
     close_connect_callback_(conn);
   }
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    connections_.erase(conn->fd());
-  }
+  remove_connection(conn->fd());
   subloops_[conn->fd() % threadnum_]->delete_connection(conn);
 }
 
@@ -77,10 +84,7 @@ void TcpServer::error_connect(spConnection conn) {
   if (error_connect_callback_) {
     error_connect_callback_(conn);
   }
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    connections_.erase(conn->fd());
-  }
+  remove_connection(conn->fd());
 }
 
 void TcpServer::message_callback(spConnection conn, std::string& message) {

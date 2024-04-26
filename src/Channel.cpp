@@ -39,6 +39,7 @@ void Channel::disable_writing() {
 void Channel::disable_all() {
   events_ = 0;
   loop_->update_channel(this);
+  inepoll_ = false;
 }
 
 void Channel::remove() {

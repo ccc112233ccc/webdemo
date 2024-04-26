@@ -4,19 +4,24 @@
 
 #include <bitset>
 
+std::atomic<int> Connection::next_id_{0};
+
 Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock)
     : loop_(loop),
       clientsock_(std::move(clientsock)),
-      clientch_(new Channel(loop_, clientsock_->fd())) {
+      clientch_(new Channel(loop_, clientsock_->fd())),
+      id_(get_next_id()) {
   clientch_->set_read_callback(std::bind(&Connection::on_message, this));
   clientch_->set_close_callback(std::bind(&Connection::close_callback, this));
   clientch_->set_error_callback(std::bind(&Connection::error_callback, this));
   clientch_->set_write_callback(std::bind(&Connection::write_callback, this));
   clientch_->useet();
-  clientch_->enable_reading();
+  // clientch_->enable_reading();
 }
 
-Connection::~Connection() { spdlog::debug("Connection::~Connection"); }
+void Connection::enable_reading() { clientch_->enable_reading(); }
+
+Connection::~Connection() { spdlog::debug("Connection {} destructed", id_); }
 
 void Connection::close_callback() {
   if (disconnected_) {
@@ -64,8 +69,8 @@ void Connection::on_message() {
 
           lasttime_ = Timestamp::now();
           if (!message_callback_) {
-            spdlog::warn("message_callback_ is nullptr, message: {}", message);
-            return;
+            spdlog::warn("connection {} has no message callback", id_);
+            break;
           }
           message_callback_(shared_from_this(), message);
         }

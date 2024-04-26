@@ -117,8 +117,8 @@ void EventLoop::handle_timeout() {
     std::lock_guard<std::mutex> lock(conn_mutex_);
     for (auto it = connections_.begin(); it != connections_.end();) {
       if (it->second->timedout(timerout_)) {
-        spdlog::debug("connection timeout(fd = {}, ip = {}, port = {})",
-                      it->second->fd(), it->second->ip(), it->second->port());
+        spdlog::warn("connection timeout(fd = {}, ip = {}, port = {})",
+                     it->second->fd(), it->second->ip(), it->second->port());
         connection_timeout_cb_(it->first);
         it = connections_.erase(it);
       } else {

@@ -1,5 +1,7 @@
 #include "Epoll.h"
 
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 #include "Channel.h"
@@ -21,14 +23,18 @@ void Epoll::update_channel(Channel* channel) {
   ev.data.ptr = channel;
   if (channel->is_in_epoll()) {
     if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, channel->fd(), &ev) == -1) {
-      perror("epoll_ctl");
+      spdlog::error("epoll_ctl_mod error {}", strerror(errno));
       exit(1);
     }
     return;
   } else {
     if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, channel->fd(), &ev) == -1) {
-      perror("epoll_ctl");
-      exit(1);
+      if (errno == EEXIST) {
+        spdlog::error("epoll_ctl_add error {}", strerror(errno));
+      } else {
+        spdlog::error("epoll_ctl_add error {}", strerror(errno));
+        exit(1);
+      }
     }
     channel->setin_epoll();
   }
@@ -37,7 +43,7 @@ void Epoll::update_channel(Channel* channel) {
 void Epoll::remove_channel(Channel* channel) {
   if (channel->is_in_epoll()) {
     if (epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, channel->fd(), NULL) == -1) {
-      perror("epoll_ctl");
+      spdlog::error("epoll_ctl_del error {}", strerror(errno));
       exit(1);
     }
   }
@@ -46,7 +52,7 @@ void Epoll::remove_channel(Channel* channel) {
 std::vector<Channel*> Epoll::wait(int timeout) {
   int nfds = epoll_wait(epoll_fd_, events_, MAX_EVENTS_, timeout);
   if (nfds == -1) {
-    perror("epoll_wait");
+    spdlog::error("epoll_wait error {}", strerror(errno));
     exit(1);
   }
   if (nfds == 0) {

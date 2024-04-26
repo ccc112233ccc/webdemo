@@ -69,5 +69,5 @@ class TcpServer {
     timeout_callback_ = cb;
   }
 
-  void remove_connection(int fd) { connections_.erase(fd); }
+  void remove_connection(int fd);
 };
